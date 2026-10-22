@@ -83,3 +83,36 @@ set_target_properties(
         OUTPUT_NAME "liquidity_bot"
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tools"
 )
+
+# ─── Benchmarks (opt-in) ─────────────────────────────────────────────────────
+# Enable with:  cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_BENCHMARKS=ON
+option(BUILD_BENCHMARKS "Build the benchmark suite" OFF)
+
+if(BUILD_BENCHMARKS)
+    add_executable(
+        bench_main
+        benchmarks/bench_main.cpp
+    )
+
+    target_link_libraries(
+        bench_main
+        PRIVATE
+            exchange_project
+    )
+
+    # Ensure maximum optimisation for meaningful numbers regardless of the
+    # global CMAKE_BUILD_TYPE (the user might configure Debug for other targets).
+    target_compile_options(
+        bench_main
+        PRIVATE
+            $<$<CXX_COMPILER_ID:GNU,Clang>:-O3 -march=native>
+            $<$<CXX_COMPILER_ID:MSVC>:/O2 /GL>
+    )
+
+    set_target_properties(
+        bench_main
+        PROPERTIES
+            OUTPUT_NAME "bench_main"
+            RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/benchmarks"
+    )
+endif()
